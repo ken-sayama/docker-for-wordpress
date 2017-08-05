@@ -1,0 +1,51 @@
+version: "2"
+services:
+  # mysql settings
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=hoge
+      - MYSQL_USER=wp_user
+      - MYSQL_PASSWORD=root
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db-data:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:80
+
+  # Wordpress settings
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - 80:80
+    depends_on:
+      - mysql
+    links:
+      - mysql
+      - phpmyadmin
+    environment:
+      - WORDPRESS_DB_HOST=mysql:3306
+      - WORDPRESS_DB_NAME=hoge
+      - WORDPRESS_DB_USER=wp_user
+      - WORDPRESS_DB_PASSWORD=root
+    volumes:
+      - ./themes:/var/www/html/wp-content/themes
+  # phpmyadmin settings
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    links:
+      - mysql
+    ports:
+      - 8080:80
+    volumes:
+      - /sessions
+volumes:
+  db-data:
+    driver: local
